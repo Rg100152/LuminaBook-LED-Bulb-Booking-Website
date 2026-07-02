@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LED Bulb Booking | Raj Gautam</title>
+    <style>
+        :root {
+            --bg: #0a0f1e;
+            --card-bg: #131a2e;
+            --text: #e0e6f0;
+            --accent: #f7c948;
+            --accent2: #2aa9e0;
+            --glow: #4df0ff;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+        }
+        body.light-mode {
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --accent: #f59e0b;
+            --accent2: #1e88e5;
+            --glow: #00bcd4;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 4px; }
+
+        /* Header */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 15, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        .theme-toggle {
+            background: var(--accent2);
+            border: none;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        section {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin: 1.5rem 0;
+        }
+        .flex-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* Bulb Showcase */
+        .bulb-container {
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .bulb {
+            width: 120px;
+            height: 180px;
+            background: #2c3e50;
+            border-radius: 50% 50% 10% 10% / 60% 60% 20% 20%;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transition: all 0.3s ease;
+            border: 3px solid #555;
+        }
+        .bulb.on {
+            background: #f7c948;
+            box-shadow: 0 0 40px #f7c948, 0 0 80px #f9a825, 0 0 120px #ffb300;
+            border-color: #ffd54f;
+        }
+        .bulb-cap {
+            width: 40px;
+            height: 30px;
+            background: #7f8c8d;
+            border-radius: 0 0 5px 5px;
+            margin-top: -5px;
+            z-index: 2;
+        }
+        .bulb-filament {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            width: 2px;
+            height: 40px;
+            background: transparent;
+            transform: translateX(-50%);
+            transition: background 0.3s;
+        }
+        .bulb.on .bulb-filament {
+            background: #fff;
+            box-shadow: 0 0 15px #fff;
+        }
+        .bulb-text {
+            margin-top: 1rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Booking Form */
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+        input, select, button {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 1rem;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: var(--accent2);
+            box-shadow: 0 0 0 2px rgba(42,169,224,0.3);
+        }
+        button {
+            background: var(--accent2);
+            border: none;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+        }
+        button:hover {
+            background: #1e88e5;
+            transform: scale(1.02);
+        }
+        .price-display {
+            grid-column: span 2;
+            text-align: right;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-top: 0.5rem;
+        }
+
+        /* Support FAB */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            cursor: pointer;
+            z-index: 200;
+            transition: transform 0.2s;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+        }
+        .chat-panel {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 320px;
+            background: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+            padding: 1.5rem;
+            z-index: 199;
+            display: none;
+            animation: slideUp 0.3s ease;
+        }
+        .chat-panel.open {
+            display: block;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .chat-option {
+            display: block;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: var(--bg);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .chat-option:hover {
+            background: var(--accent2);
+            color: white;
+        }
+
+        /* About */
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 300;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            margin: 1rem;
+        }
+
+        .bulb-list-item {
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+            .navbar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">💡 LuminaBook</div>
+        <div class="nav-links">
+            <a onclick="scrollToSection('home')">Home</a>
+            <a onclick="scrollToSection('booking')">Book Now</a>
+            <a onclick="scrollToSection('about')">About</a>
+            <button class="theme-toggle" id="themeToggle">🌓 Mode</button>
+        </div>
+    </nav>
+
+    <!-- Home Section with Bulb Showcase -->
+    <section id="home">
+        <div class="card flex-center" style="flex-direction: column;">
+            <h2 style="color: var(--accent);">Experience the Future of Light</h2>
+            <div class="bulb-container" id="bulbContainer">
+                <div class="bulb" id="bulb">
+                    <div class="bulb-filament"></div>
+                </div>
+                <div class="bulb-cap"></div>
+                <div class="bulb-text" id="bulbStatus">Click to Turn ON</div>
+            </div>
+            <p style="max-width: 600px; text-align: center; margin-top: 1rem;">
+                Interactive LED bulb – click to see the glow! Then book your favorite model below.
+            </p>
+        </div>
+    </section>
+
+    <!-- Booking Section -->
+    <section id="booking">
+        <div class="card">
+            <h2 style="color: var(--accent2); margin-bottom: 1.5rem;">📋 Book Your LED Bulbs</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="custName" placeholder="Raj Gautam" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="custPhone" placeholder="9876543210" required>
+                </div>
+                <div class="form-group">
+                    <label>Bulb Model</label>
+                    <select id="bulbModel" required>
+                        <!-- Dynamically filled with 100 options -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="quantity" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Delivery Date</label>
+                    <input type="date" id="deliveryDate" required>
+                </div>
+                <div class="price-display" id="priceDisplay">Total: ₹0</div>
+                <button type="submit" style="grid-column: span 2;">Confirm Booking</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+        <div class="card about-content">
+            <h2 style="color: var(--accent2);">👨‍💻 About the Developer</h2>
+            <p>
+                Hi, I'm <strong>Raj Gautam</strong>, a Bachelor of Computer Applications (BCA) student with a strong curiosity for technology, cybersecurity, and software development.
+            </p>
+            <p>
+                I enjoy exploring how websites and software are designed before they are built, from planning and documentation to development. I'm also interested in Linux and regularly use Pop!_OS to learn and experiment with different tools.
+            </p>
+            <p>
+                My goal is to continuously improve my technical skills, build useful projects, and expand my knowledge of cybersecurity, web development, and modern technologies. I believe that learning through practice, curiosity, and consistency is the best way to grow as a developer.
+            </p>
+            <p>
+                I'm always eager to explore new ideas, solve problems, and create meaningful digital solutions.
+            </p>
+            <p style="margin-top: 1rem; font-style: italic;">– Raj Gautam</p>
+        </div>
+    </section>
+
+    <!-- Floating Support Widget -->
+    <button class="fab" id="fabBtn">💬</button>
+    <div class="chat-panel" id="chatPanel">
+        <h4 style="margin-bottom: 0.5rem;">Customer Support</h4>
+        <div class="chat-option" onclick="showFakeChat('FAQ: Delivery time?')">📦 FAQ: Delivery Time</div>
+        <div class="chat-option" onclick="showFakeChat('Return policy?')">↩️ Return Policy</div>
+        <div class="chat-option" onclick="showFakeChat('Live agent')">🧑‍💼 Chat with Agent</div>
+        <small style="color: gray;">*Demo support widget</small>
+    </div>
+
+    <!-- Booking Confirmation Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3>✅ Booking Confirmed!</h3>
+            <p id="confirmMessage"></p>
+            <button onclick="closeModal()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== DATA: 100 Bulb Models ====================
+        const bulbDatabase = [];
+        const bases = ['E27', 'B22', 'E14', 'GU10'];
+        const colors = ['Warm White (3000K)', 'Cool White (4000K)', 'Daylight (6500K)'];
+        const brands = ['Lumina', 'Philips', 'Syska', 'Wipro', 'Havells'];
+
+        // Generate 100 unique bulbs
+        for (let i = 1; i <= 100; i++) {
+            const watt = (5 + Math.floor((i-1)/4) * 0.5).toFixed(1); // 5W to ~17.5W stepped
+            const base = bases[(i-1) % bases.length];
+            const color = colors[(i-1) % colors.length];
+            const brand = brands[Math.floor((i-1) / 20) % brands.length];
+            const price = Math.round(60 + parseFloat(watt) * 8); // Price based on wattage
+            bulbDatabase.push({
+                id: i,
+                name: `${brand} LED Bulb ${watt}W - ${base} (${color})`,
+                watt: parseFloat(watt),
+                base,
+                color,
+                price
+            });
+        }
+
+        // ==================== DOM ELEMENTS ====================
+        const bulb = document.getElementById('bulb');
+        const bulbStatus = document.getElementById('bulbStatus');
+        const bulbModelSelect = document.getElementById('bulbModel');
+        const quantityInput = document.getElementById('quantity');
+        const priceDisplay = document.getElementById('priceDisplay');
+        const bookingForm = document.getElementById('bookingForm');
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmMessage = document.getElementById('confirmMessage');
+        const fabBtn = document.getElementById('fabBtn');
+        const chatPanel = document.getElementById('chatPanel');
+        const themeToggle = document.getElementById('themeToggle');
+        const deliveryDate = document.getElementById('deliveryDate');
+
+        // ==================== BULB TOGGLE ====================
+        let isBulbOn = localStorage.getItem('bulbOn') === 'true';
+        updateBulbUI();
+
+        document.getElementById('bulbContainer').addEventListener('click', () => {
+            isBulbOn = !isBulbOn;
+            localStorage.setItem('bulbOn', isBulbOn);
+            updateBulbUI();
+        });
+
+        function updateBulbUI() {
+            if (isBulbOn) {
+                bulb.classList.add('on');
+                bulbStatus.textContent = '💡 ON (Click to turn off)';
+            } else {
+                bulb.classList.remove('on');
+                bulbStatus.textContent = 'Click to Turn ON';
+            }
+        }
+
+        // ==================== POPULATE BULB SELECT ====================
+        bulbDatabase.forEach(bulbItem => {
+            const option = document.createElement('option');
+            option.value = bulbItem.id;
+            option.textContent = `${bulbItem.name} - ₹${bulbItem.price}`;
+            bulbModelSelect.appendChild(option);
+        });
+
+        // ==================== PRICE CALCULATION ====================
+        function updatePrice() {
+            const selectedId = bulbModelSelect.value;
+            const quantity = parseInt(quantityInput.value) || 1;
+            if (!selectedId) {
+                priceDisplay.textContent = 'Total: ₹0';
+                return;
+            }
+            const bulbData = bulbDatabase.find(b => b.id == selectedId);
+            const total = bulbData.price * quantity;
+            priceDisplay.textContent = `Total: ₹${total.toLocaleString()}`;
+        }
+
+        bulbModelSelect.addEventListener('change', updatePrice);
+        quantityInput.addEventListener('input', updatePrice);
+
+        // Set min date to today
+        const today = new Date().toISOString().split('T')[0];
+        deliveryDate.setAttribute('min', today);
+
+        // ==================== FORM SUBMISSION ====================
+        bookingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const modelId = bulbModelSelect.value;
+            const quantity = quantityInput.value;
+            const date = deliveryDate.value;
+
+            if (!name || !phone || !modelId || !date) {
+                alert('Please fill all required fields.');
+                return;
+            }
+            const selectedBulb = bulbDatabase.find(b => b.id == modelId);
+            const total = selectedBulb.price * quantity;
+            confirmMessage.innerHTML = `
+                <strong>${name}</strong>, your booking for <br>
+                ${quantity} x ${selectedBulb.name} <br>
+                Delivery by: ${date} <br>
+                <span style="font-size:1.5rem;">Total: ₹${total.toLocaleString()}</span>
+            `;
+            confirmModal.classList.add('active');
+            bookingForm.reset();
+            quantityInput.value = 1;
+            priceDisplay.textContent = 'Total: ₹0';
+        });
+
+        function closeModal() {
+            confirmModal.classList.remove('active');
+        }
+
+        // ==================== SUPPORT WIDGET ====================
+        fabBtn.addEventListener('click', () => {
+            chatPanel.classList.toggle('open');
+        });
+
+        function showFakeChat(topic) {
+            alert(`Demo response for: "${topic}"\n\nThank you for reaching out! Our team will assist you shortly. (This is a simulated chat)`);
+            chatPanel.classList.remove('open');
+        }
+
+        // ==================== THEME TOGGLE ====================
+        const body = document.body;
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            body.classList.add('light-mode');
+            themeToggle.textContent = '☀️ Light';
+        } else {
+            body.classList.remove('light-mode');
+            themeToggle.textContent = '🌙 Dark';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLight = body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            themeToggle.textContent = isLight ? '☀️ Light' : '🌙 Dark';
+        });
+
+        // ==================== SMOOTH SCROLL ====================
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            // Close mobile nav if needed (not implemented)
+        }
+
+        // Initial price
+        updatePrice();
+    </script>
+</body>
+</html>
